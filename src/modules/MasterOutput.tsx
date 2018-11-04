@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Device from "../data/Device";
 import Rack from "../data/Rack";
 import { PortView, PortProps } from "../interface/PortView";
+import DeviceContainer from "../interface/DeviceContainer";
 
 interface MasterOutputController {
   device: Device;
@@ -26,14 +27,14 @@ function MasterOutput({ rack, onPortSelect }: MasterOutputProps & PortProps) {
   const master = useMaster(rack);
 
   return (
-    <div className="device">
+    <DeviceContainer name="Master Output">
       <PortView
         isSelected={false}
         type="input"
         device={master.device}
         onSelect={onPortSelect}
       />
-    </div>
+    </DeviceContainer>
   );
 }
 

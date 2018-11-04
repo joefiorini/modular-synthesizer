@@ -5,6 +5,7 @@ import Rack from "../data/Rack";
 import { Slider } from "../interface/Slider";
 import { PortView, PortProps } from "../interface/PortView";
 import { extractValue } from "../extractValue";
+import DeviceContainer from "../interface/DeviceContainer";
 
 interface OscillatorController {
   frequency: number;
@@ -66,7 +67,7 @@ const Oscillator = ({
   const oscillator = useOscillator(rack, { frequency, waveType });
 
   return (
-    <div className="device">
+    <DeviceContainer name="Oscillator">
       <Slider
         min={80}
         max={1100}
@@ -121,7 +122,7 @@ const Oscillator = ({
           onSelect={onPortSelect}
         />
       </div>
-    </div>
+    </DeviceContainer>
   );
 };
 

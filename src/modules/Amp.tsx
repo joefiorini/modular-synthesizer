@@ -5,6 +5,7 @@ import { Slider } from "../interface/Slider";
 import Device, { DeviceState } from "../data/Device";
 import Rack from "../data/Rack";
 import { PortView, PortProps } from "../interface/PortView";
+import DeviceContainer from "../interface/DeviceContainer";
 
 interface GainController {
   // connectInput(device: Device): void;
@@ -39,7 +40,7 @@ interface AmpProps {
 function Amp({ rack, onPortSelect }: AmpProps & PortProps) {
   const gain = useGain(rack);
   return (
-    <>
+    <DeviceContainer name="Amp">
       <Slider
         min={0}
         max={1}
@@ -62,7 +63,7 @@ function Amp({ rack, onPortSelect }: AmpProps & PortProps) {
         device={gain.device}
         onSelect={onPortSelect}
       />
-    </>
+    </DeviceContainer>
   );
 }
 
