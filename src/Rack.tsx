@@ -9,6 +9,7 @@ import Port from "./data/Port";
 import Amp from "./modules/Amp";
 import Oscillator from "./modules/Oscillator";
 import MasterOutput from "./modules/MasterOutput";
+import styled from "react-emotion";
 
 function useAudioContext(): RackT {
   const [audioContext, setAudioContext] = useState(() => {
@@ -37,6 +38,12 @@ function useAudioContext(): RackT {
   };
 }
 
+const Container = styled("div")`
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+`;
+
 const Rack = (props: any) => {
   const rack = useAudioContext();
   const [[activePort], setActivePort] = useState([] as Array<Port>);
@@ -60,7 +67,7 @@ const Rack = (props: any) => {
     }
   };
   return (
-    <div>
+    <Container>
       <Oscillator
         frequency={440}
         rack={rack}
@@ -69,7 +76,7 @@ const Rack = (props: any) => {
       />
       <Amp rack={rack} onPortSelect={handlePortSelect} />
       <MasterOutput rack={rack} onPortSelect={handlePortSelect} />
-    </div>
+    </Container>
   );
 };
 
