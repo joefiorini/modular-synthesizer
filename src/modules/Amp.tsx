@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 import { extractValue } from "../extractValue";
 import { Slider } from "../interface/Slider";
 import Device, { DeviceState } from "../data/Device";
-import Rack from "../data/Rack";
+import { Rack } from "../data/Rack";
 import { PortView, PortProps } from "../interface/PortView";
 import DeviceContainer from "../interface/DeviceContainer";
+import { useInputPort, useOutputPort } from "../interface/PortView";
 
 interface GainController {
   // connectInput(device: Device): void;
@@ -21,6 +22,7 @@ export function useGain(rack: Rack, defaultValue = 0.5): GainController {
     return [node, device] as DeviceState<GainNode>;
   });
   const [gainValue, setGainValue] = useState(defaultValue);
+
   gain.gain.value = gainValue;
   return {
     device,
@@ -39,6 +41,10 @@ interface AmpProps {
 
 function Amp({ rack, onPortSelect }: AmpProps & PortProps) {
   const gain = useGain(rack);
+  const inputPort = useInputPort(rack, gain.device, "input");
+  const outputPort = useOutputPort(rack, gain.device, "output");
+  const gatePort = useInputPort(rack, gain.device, "gate");
+
   return (
     <DeviceContainer name="Amp">
       <Slider
@@ -51,18 +57,9 @@ function Amp({ rack, onPortSelect }: AmpProps & PortProps) {
         )}
         label="Gain"
       />
-      <PortView
-        isSelected={false}
-        type="input"
-        device={gain.device}
-        onSelect={onPortSelect}
-      />
-      <PortView
-        isSelected={false}
-        type="output"
-        device={gain.device}
-        onSelect={onPortSelect}
-      />
+      <PortView isSelected={false} port={inputPort} onSelect={onPortSelect} />
+      <PortView isSelected={false} port={outputPort} onSelect={onPortSelect} />
+      <PortView isSelected={false} port={gatePort} onSelect={onPortSelect} />
     </DeviceContainer>
   );
 }

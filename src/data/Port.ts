@@ -1,8 +1,7 @@
 import Device from "./Device";
 
-interface Port {
-  type: "input" | "output";
+export interface Port {
+  label: string;
+  type: string;
   device: Device;
 }
-
-export default Port;

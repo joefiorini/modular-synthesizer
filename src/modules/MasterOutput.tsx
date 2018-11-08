@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
 import Device from "../data/Device";
-import Rack from "../data/Rack";
-import { PortView, PortProps } from "../interface/PortView";
+import { Rack } from "../data/Rack";
+import { PortView, PortProps, useInputPort } from "../interface/PortView";
 import DeviceContainer from "../interface/DeviceContainer";
 
 interface MasterOutputController {
@@ -25,15 +25,11 @@ function useMaster(rack: Rack): MasterOutputController {
 
 function MasterOutput({ rack, onPortSelect }: MasterOutputProps & PortProps) {
   const master = useMaster(rack);
+  const inputPort = useInputPort(rack, master.device, "input");
 
   return (
     <DeviceContainer name="Master Output">
-      <PortView
-        isSelected={false}
-        type="input"
-        device={master.device}
-        onSelect={onPortSelect}
-      />
+      <PortView isSelected={false} port={inputPort} onSelect={onPortSelect} />
     </DeviceContainer>
   );
 }

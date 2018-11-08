@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
 
 import Device, { DeviceState } from "../data/Device";
-import Rack from "../data/Rack";
+import { Rack } from "../data/Rack";
 import { Slider } from "../interface/Slider";
-import { PortView, PortProps } from "../interface/PortView";
+import {
+  PortView,
+  PortProps,
+  useOutputPort,
+  useInputPort
+} from "../interface/PortView";
 import { extractValue } from "../extractValue";
 import DeviceContainer from "../interface/DeviceContainer";
 
@@ -65,6 +70,8 @@ const Oscillator = ({
   onPortSelect
 }: OscillatorProps & PortProps) => {
   const oscillator = useOscillator(rack, { frequency, waveType });
+  const outputPort = useOutputPort(rack, oscillator.device, "output");
+  const voltPer8vaPort = useInputPort(rack, oscillator.device, "Volt per 8va");
 
   return (
     <DeviceContainer name="Oscillator">
@@ -117,8 +124,12 @@ const Oscillator = ({
         </label>
         <PortView
           isSelected={false}
-          type="output"
-          device={oscillator.device}
+          port={outputPort}
+          onSelect={onPortSelect}
+        />
+        <PortView
+          isSelected={false}
+          port={voltPer8vaPort}
           onSelect={onPortSelect}
         />
       </div>

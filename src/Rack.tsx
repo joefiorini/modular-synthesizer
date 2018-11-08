@@ -1,22 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useReducer, useContext } from "react";
 import { useArray } from "react-hanger";
 
 import useId from "./hooks/useId";
 import Device from "./data/Device";
-import RackT from "./data/Rack";
-import Port from "./data/Port";
+import { Rack as RackT } from "./data/Rack";
+import { Port } from "./data/Port";
 
 import Amp from "./modules/Amp";
 import Oscillator from "./modules/Oscillator";
 import MasterOutput from "./modules/MasterOutput";
 import styled from "react-emotion";
+import Connection from "./data/Connection";
+
+interface Action {
+  type: "addDevice" | "addConnection" | "removeConnection" | "allocatePort";
+  payload: any;
+}
+interface State {
+  devices: Array<Device>;
+  connections: Array<Connection>;
+  ports: Array<Port>;
+}
+
+function rackReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "addDevice":
+      return {
+        ...state,
+        devices: [...state.devices, action.payload]
+      };
+    case "addConnection":
+      return {
+        ...state,
+        connections: [...state.connections, action.payload]
+      };
+    case "removeConnection":
+      return {
+        ...state,
+        connections: state.connections.filter(c => c === action.payload)
+      };
+    case "allocatePort":
+      return {
+        ...state,
+        ports: [...state.ports, action.payload]
+      };
+  }
+}
+
+const ports: Array<Port> = [];
 
 function useAudioContext(): RackT {
   const [audioContext, setAudioContext] = useState(() => {
     return new AudioContext();
   });
-  const devices = useArray([]);
-  const connections = useArray([]);
+  const [{ connections, devices, ports }, dispatch] = useReducer(rackReducer, {
+    devices: [],
+    connections: [],
+    ports: []
+  });
 
   return {
     ...audioContext,
@@ -27,13 +68,32 @@ function useAudioContext(): RackT {
     createDevice(node: AudioNode) {
       const id = useId();
       const device = { node, id };
-      devices.add(device);
+      dispatch({ type: "addDevice", payload: device });
       return device;
     },
     connect(outputDevice: Device, inputDevice: Device) {
       console.log(`Connecting ${outputDevice.node} to ${inputDevice.node}`);
       outputDevice.node.connect(inputDevice.node);
-      connections.add({ out: outputDevice.id, in: inputDevice.id });
+      const connection = { output: outputDevice.id, input: inputDevice.id };
+      dispatch({ type: "addConnection", payload: connection });
+      return connection;
+    },
+    disconnect(connection: Connection) {
+      const inputDevice = devices.find(
+        device => device.id === connection.input
+      );
+      const outputDevice = devices.find(
+        device => device.id === connection.output
+      );
+      console.log(
+        `Disconnecting ${outputDevice.node} from ${inputDevice.node}`
+      );
+      outputDevice.node.disconnect(inputDevice.node);
+      dispatch({ type: "removeConnection", payload: connection });
+    },
+    allocatePort(port) {
+      dispatch({ type: "allocatePort", payload: port });
+      return port;
     }
   };
 }
