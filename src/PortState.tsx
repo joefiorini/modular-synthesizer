@@ -12,6 +12,7 @@ interface PortStateActions {
   onSelect: (p: Port) => void;
   onInspect: (p: Port) => void;
   onDeselect: (p: Port) => void;
+  onStopInspecting: (p: Port) => void;
 }
 
 export const isConnectedToPort = (
@@ -39,7 +40,7 @@ export const isConnectedToPort = (
 type PortStateContext = PortState & PortStateActions;
 
 export interface PortAction {
-  type: "selectPort" | "inspectPort" | "deselectPort";
+  type: "selectPort" | "inspectPort" | "deselectPort" | "stopInspecting";
   payload: Port;
 }
 
@@ -64,8 +65,12 @@ export function portStateReducer(state: PortState, action: PortAction) {
     }
     case "inspectPort": {
       const port = action.payload;
+      console.log("inspecting port", port);
       return { ...state, inspectedPort: port };
     }
+    case "stopInspecting":
+      return { ...state, inspectedPort: undefined };
+
     case "deselectPort":
       return { ...state, selectedPort: undefined };
   }
@@ -94,6 +99,9 @@ function PortState({ children }: PortStateProps) {
     },
     onInspect(port) {
       dispatch({ type: "inspectPort", payload: port });
+    },
+    onStopInspecting(port) {
+      dispatch({ type: "stopInspecting", payload: port });
     }
   };
 

@@ -97,12 +97,20 @@ export const PortView = ({ port }: PortViewProps) => {
   );
   const { selectedPort, inspectedPort } = portContext;
   const { type, label } = port;
-  const isAvailable =
-    selectedPort != null &&
-    (canConnectToPort(port, selectedPort) ||
-      isConnectedToPort(selectedPort, port, rack));
+  const isInspected = inspectedPort === port;
+
+  let isAvailable = false;
+  if (selectedPort != null) {
+    isAvailable = canConnectToPort(port, selectedPort);
+  } else if (inspectedPort != null) {
+    isAvailable = isConnectedToPort(inspectedPort, port, rack);
+  }
+
   const flashingAvailability = useFlashingStyle(availableStyle, isBasic, {
     when: isAvailable
+  });
+  const flashingInspected = useFlashingStyle(activeStyle, isBasic, {
+    when: isInspected
   });
 
   const rectStyle =
@@ -112,6 +120,8 @@ export const PortView = ({ port }: PortViewProps) => {
       ? flashingAvailability
       : selectedPort
       ? unavailableStyle
+      : isInspected
+      ? flashingInspected
       : isBasic;
   const indicator = (
     <line
@@ -152,6 +162,8 @@ export const PortView = ({ port }: PortViewProps) => {
             }
           }}
           onMouseOver={() => {
+            if (selectedPort) return;
+
             const timeout = setTimeout(() => {
               portContext.onInspect(port);
               setInspectTimeout(null);
@@ -159,9 +171,12 @@ export const PortView = ({ port }: PortViewProps) => {
             setInspectTimeout(timeout);
           }}
           onMouseOut={() => {
+            if (selectedPort) return;
+
             if (inspectTimeout) {
               clearTimeout(inspectTimeout);
             }
+            portContext.onStopInspecting(port);
           }}
           x={type === "input" ? 14 : 0}
           y={2}
