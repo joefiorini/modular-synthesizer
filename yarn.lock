@@ -871,6 +871,11 @@
     "@svgr/core" "^2.4.1"
     loader-utils "^1.1.0"
 
+"@types/classnames@^2.2.6":
+  version "2.2.6"
+  resolved "http://artifactory.asurint.net:80/api/npm/npm/@types/classnames/-/classnames-2.2.6.tgz#dbe8a666156d556ed018e15a4c65f08937c3f628"
+  integrity sha1-2+imZhVtVW7QGOFaTGXwiTfD9ig=
+
 "@types/node@*":
   version "10.12.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.2.tgz#d77f9faa027cadad9c912cd47f4f8b07b0fb0864"

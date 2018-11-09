@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 import Device, { DeviceState } from "../data/Device";
-import { Rack } from "../data/Rack";
 import { Slider } from "../interface/Slider";
-import {
-  PortView,
-  PortProps,
-  useOutputPort,
-  useInputPort
-} from "../interface/PortView";
+import { PortView, useOutputPort, useInputPort } from "../interface/PortView";
 import { extractValue } from "../extractValue";
 import DeviceContainer from "../interface/DeviceContainer";
+import { RackStateContext, RackContext } from "../RackState";
+import useAudioContext from "../hooks/useAudioContext";
+import { AudioContextContext } from "../AudioContextState";
 
 interface OscillatorController {
   frequency: number;
@@ -21,11 +18,12 @@ interface OscillatorController {
 }
 
 function useOscillator(
-  rack: Rack,
+  rack: RackStateContext,
   defaults: { frequency: number; waveType: OscillatorType }
 ): OscillatorController {
+  const audioContext = useContext(AudioContextContext);
   const [[oscillator, device], _] = useState(() => {
-    const osc = rack.createOscillator();
+    const osc = audioContext.createOscillator();
     const device = rack.createDevice(osc);
     return [osc, device] as DeviceState<OscillatorNode>;
   });
@@ -59,16 +57,11 @@ function useOscillator(
 
 interface OscillatorProps {
   frequency: number;
-  rack: Rack;
   waveType: OscillatorType;
 }
 
-const Oscillator = ({
-  frequency,
-  rack,
-  waveType,
-  onPortSelect
-}: OscillatorProps & PortProps) => {
+const Oscillator = ({ frequency, waveType }: OscillatorProps) => {
+  const rack = useContext(RackContext);
   const oscillator = useOscillator(rack, { frequency, waveType });
   const outputPort = useOutputPort(rack, oscillator.device, "output");
   const voltPer8vaPort = useInputPort(rack, oscillator.device, "Volt per 8va");
@@ -122,16 +115,8 @@ const Oscillator = ({
           />
           Saw
         </label>
-        <PortView
-          isSelected={false}
-          port={outputPort}
-          onSelect={onPortSelect}
-        />
-        <PortView
-          isSelected={false}
-          port={voltPer8vaPort}
-          onSelect={onPortSelect}
-        />
+        <PortView port={outputPort} />
+        <PortView port={voltPer8vaPort} />
       </div>
     </DeviceContainer>
   );

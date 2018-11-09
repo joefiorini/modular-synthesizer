@@ -3,10 +3,12 @@ import React, { useState, useContext } from "react";
 import { extractValue } from "../extractValue";
 import { Slider } from "../interface/Slider";
 import Device, { DeviceState } from "../data/Device";
-import { Rack } from "../data/Rack";
-import { PortView, PortProps } from "../interface/PortView";
+import { PortView } from "../interface/PortView";
 import DeviceContainer from "../interface/DeviceContainer";
 import { useInputPort, useOutputPort } from "../interface/PortView";
+import { RackContext, RackStateContext } from "../RackState";
+import useAudioContext from "../hooks/useAudioContext";
+import { AudioContextContext } from "../AudioContextState";
 
 interface GainController {
   // connectInput(device: Device): void;
@@ -15,9 +17,13 @@ interface GainController {
   device: Device;
 }
 
-export function useGain(rack: Rack, defaultValue = 0.5): GainController {
+export function useGain(
+  rack: RackStateContext,
+  defaultValue = 0.5
+): GainController {
+  const audioContext = useContext(AudioContextContext);
   const [[gain, device], setGain] = useState(() => {
-    const node = rack.createGain();
+    const node = audioContext.createGain();
     const device = rack.createDevice(node);
     return [node, device] as DeviceState<GainNode>;
   });
@@ -32,14 +38,9 @@ export function useGain(rack: Rack, defaultValue = 0.5): GainController {
     }
   };
 }
-interface AmpProps {
-  rack: Rack;
-  // gatePort?: PortConnection;
-  // inputPort?: PortConnection;
-  // outputPort?: PortConnection;
-}
 
-function Amp({ rack, onPortSelect }: AmpProps & PortProps) {
+function Amp() {
+  const rack = useContext(RackContext);
   const gain = useGain(rack);
   const inputPort = useInputPort(rack, gain.device, "input");
   const outputPort = useOutputPort(rack, gain.device, "output");
@@ -57,9 +58,9 @@ function Amp({ rack, onPortSelect }: AmpProps & PortProps) {
         )}
         label="Gain"
       />
-      <PortView isSelected={false} port={inputPort} onSelect={onPortSelect} />
-      <PortView isSelected={false} port={outputPort} onSelect={onPortSelect} />
-      <PortView isSelected={false} port={gatePort} onSelect={onPortSelect} />
+      <PortView port={inputPort} />
+      <PortView port={outputPort} />
+      <PortView port={gatePort} />
     </DeviceContainer>
   );
 }

@@ -1,21 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 import Device from "../data/Device";
-import { Rack } from "../data/Rack";
-import { PortView, PortProps, useInputPort } from "../interface/PortView";
+import { PortView, useInputPort } from "../interface/PortView";
 import DeviceContainer from "../interface/DeviceContainer";
+import { RackStateContext, RackContext } from "../RackState";
+import useAudioContext from "../hooks/useAudioContext";
+import { AudioContextContext } from "../AudioContextState";
 
 interface MasterOutputController {
   device: Device;
 }
 
-interface MasterOutputProps {
-  rack: Rack;
-}
-
-function useMaster(rack: Rack): MasterOutputController {
-  const [device, setMaster] = useState(() => {
-    const node = rack.destination;
+function useMaster(rack: RackStateContext): MasterOutputController {
+  const audioContext = useContext(AudioContextContext);
+  const [device] = useState(() => {
+    const node = audioContext.destination;
     const device = rack.createDevice(node);
     return device;
   });
@@ -23,13 +22,14 @@ function useMaster(rack: Rack): MasterOutputController {
   return { device };
 }
 
-function MasterOutput({ rack, onPortSelect }: MasterOutputProps & PortProps) {
+function MasterOutput() {
+  const rack = useContext(RackContext);
   const master = useMaster(rack);
   const inputPort = useInputPort(rack, master.device, "input");
 
   return (
     <DeviceContainer name="Master Output">
-      <PortView isSelected={false} port={inputPort} onSelect={onPortSelect} />
+      <PortView port={inputPort} />
     </DeviceContainer>
   );
 }

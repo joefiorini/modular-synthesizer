@@ -1,8 +1,9 @@
+import { Port } from "./Port";
 import Device from "./Device";
 
 interface Connection {
-  input: number;
-  output: number;
+  input: Port;
+  output: Port;
 }
 
 export default Connection;

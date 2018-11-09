@@ -1,37 +1,118 @@
-import React, { useEffect } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMutationEffect,
+  useContext
+} from "react";
 
 import Device from "../data/Device";
-import { Port } from "../data/Port";
-import { Rack } from "../data/Rack";
+import { Port, canConnectToPort } from "../data/Port";
 
-export interface PortProps {
-  onPortSelect(port: Port): void;
-}
+import * as colors from "./Colors";
+import { css } from "react-emotion";
+import { PortContext, isConnectedToPort } from "../PortState";
+import { RackContext, RackStateContext } from "../RackState";
+
+const isBasic = css(`
+  stroke: ${colors.gray6};
+  stroke-width: 2;
+  fill: ${colors.secondary21};
+`);
+
+const activeStyle = css(`
+  stroke: ${colors.primary2};
+  fill: ${colors.complement1};
+`);
+
+const availableStyle = css(`
+  stroke: ${colors.secondary12};
+  fill: ${colors.secondary21};
+`);
+
+const unavailableStyle = css(`
+  stroke: ${colors.gray4};
+  fill: ${colors.gray2};
+  cursor: not-allowed;
+`);
 
 interface PortViewProps {
-  isSelected: boolean;
   port: Port;
-  onSelect: (v: any) => void;
 }
 
-export function useOutputPort(rack: Rack, device: Device, label: string) {
-  const port = { type: "output", device, label };
+export function useOutputPort(
+  rack: RackStateContext,
+  device: Device,
+  label: string
+) {
+  const [port] = useState(() => ({ type: "output", device, label }));
   useEffect(() => {
     rack.allocatePort(port);
   }, []);
   return port;
 }
 
-export function useInputPort(rack: Rack, device: Device, label: string) {
-  const port = { type: "input", device, label };
+export function useInputPort(
+  rack: RackStateContext,
+  device: Device,
+  label: string
+) {
+  const [port] = useState(() => ({ type: "input", device, label }));
   useEffect(() => {
     rack.allocatePort(port);
   }, []);
   return port;
 }
 
-export const PortView = ({ isSelected, port, onSelect }: PortViewProps) => {
-  const { type, device, label } = port;
+interface FlashingOptions {
+  when: boolean;
+  timing?: number;
+}
+function useFlashingStyle(
+  style: string,
+  alternateStyle: string,
+  { when, timing = 250 }: FlashingOptions
+) {
+  let [currentStyle, setStyle] = useState(style);
+
+  function toggleStyle() {
+    setStyle(currentStyle === style ? alternateStyle : style);
+  }
+
+  function scheduleStyleChange() {
+    if (when) {
+      setTimeout(toggleStyle, timing);
+    }
+  }
+
+  useMutationEffect(scheduleStyleChange, [when, currentStyle]);
+
+  return currentStyle;
+}
+
+export const PortView = ({ port }: PortViewProps) => {
+  const rack = useContext(RackContext);
+  const portContext = useContext(PortContext);
+  const [inspectTimeout, setInspectTimeout] = useState(
+    null as NodeJS.Timeout | null
+  );
+  const { selectedPort, inspectedPort } = portContext;
+  const { type, label } = port;
+  const isAvailable =
+    selectedPort != null &&
+    (canConnectToPort(port, selectedPort) ||
+      isConnectedToPort(selectedPort, port, rack));
+  const flashingAvailability = useFlashingStyle(availableStyle, isBasic, {
+    when: isAvailable
+  });
+
+  const rectStyle =
+    selectedPort === port
+      ? activeStyle
+      : isAvailable
+      ? flashingAvailability
+      : selectedPort
+      ? unavailableStyle
+      : isBasic;
   const indicator = (
     <line
       x1={type === "input" ? -10 : 24}
@@ -46,7 +127,7 @@ export const PortView = ({ isSelected, port, onSelect }: PortViewProps) => {
 
   return (
     <div>
-      <svg width="40" height="24">
+      <svg width="40" height="30">
         <defs>
           <marker
             id="arrow"
@@ -62,17 +143,30 @@ export const PortView = ({ isSelected, port, onSelect }: PortViewProps) => {
         </defs>
         {indicator}
         <rect
+          className={rectStyle}
           onClick={() => {
-            onSelect({ type, device });
+            if (selectedPort === port) {
+              portContext.onDeselect(port);
+            } else {
+              portContext.onSelect(port);
+            }
+          }}
+          onMouseOver={() => {
+            const timeout = setTimeout(() => {
+              portContext.onInspect(port);
+              setInspectTimeout(null);
+            }, 500);
+            setInspectTimeout(timeout);
+          }}
+          onMouseOut={() => {
+            if (inspectTimeout) {
+              clearTimeout(inspectTimeout);
+            }
           }}
           x={type === "input" ? 14 : 0}
+          y={2}
           width="24"
           height="24"
-          style={{
-            strokeWidth: 1,
-            stroke: isSelected ? "#00F" : "#000",
-            fill: "#FFF"
-          }}
         />
       </svg>
       {label}

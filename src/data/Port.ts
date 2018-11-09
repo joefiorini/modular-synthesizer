@@ -5,3 +5,6 @@ export interface Port {
   type: string;
   device: Device;
 }
+
+export const canConnectToPort = (currentPort: Port, otherPort: Port) =>
+  currentPort.type !== otherPort.type;
