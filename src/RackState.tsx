@@ -4,6 +4,7 @@ import Device from "./data/Device";
 import Connection from "./data/Connection";
 import { Port } from "./data/Port";
 import useId from "./hooks/useId";
+import { CustomNode } from "./data/CustomNode";
 
 interface RackState {
   devices: Array<Device>;
@@ -14,7 +15,7 @@ interface RackState {
 interface RackStateActions {
   connect(output: Port, input: Port): Connection;
   disconnect(connection: Connection): void;
-  createDevice(node: AudioNode): Device;
+  createDevice(node: AudioNode | CustomNode): Device;
   allocatePort(port: Port): Port;
 }
 
@@ -62,24 +63,32 @@ function RackState({ children }: RackStateProps) {
     connections: [],
     ports: []
   });
+  const getDeviceId = useId("device");
   const { ports } = state;
   const contextObject: RackStateContext = {
     ...state,
     createDevice(node: AudioNode) {
-      const id = useId();
+      const id = getDeviceId();
       const device = { node, id };
       dispatch({ type: "addDevice", payload: device });
       return device;
     },
     connect(outputPort, inputPort) {
       const {
-        device: { node: inputNode }
+        device: { node: inputNode },
+        modulationParam
       } = inputPort;
       const {
         device: { node: outputNode }
       } = outputPort;
       console.log(`Connecting ${outputNode} to ${inputNode}`);
-      outputNode.connect(inputNode);
+      if (modulationParam) {
+        // @ts-ignore
+        outputNode.connect(modulationParam);
+      } else {
+        // @ts-ignore
+        outputNode.connect(inputNode);
+      }
       const connection = { output: outputPort, input: inputPort };
       dispatch({ type: "addConnection", payload: connection });
       return connection;
@@ -90,6 +99,7 @@ function RackState({ children }: RackStateProps) {
       console.log(
         `Disconnecting ${outputPort.device.node} from ${inputPort.device.node}`
       );
+      // @ts-ignore
       outputPort.device.node.disconnect(inputPort.device.node);
       dispatch({ type: "removeConnection", payload: connection });
     },

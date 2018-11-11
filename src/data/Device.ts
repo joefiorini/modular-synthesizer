@@ -1,6 +1,8 @@
+import { CustomNode } from "./CustomNode";
+
 interface Device {
   id: number;
-  node: AudioNode;
+  node: AudioNode | CustomNode;
 }
 
 export type DeviceState<TNode> = [TNode, Device];

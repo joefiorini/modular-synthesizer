@@ -8,12 +8,13 @@ import DeviceContainer from "../interface/DeviceContainer";
 import { RackStateContext, RackContext } from "../RackState";
 import useAudioContext from "../hooks/useAudioContext";
 import { AudioContextContext } from "../AudioContextState";
+import useId from "../hooks/useId";
 
 interface OscillatorController {
   frequency: number;
   waveType: OscillatorType;
   setFrequency(newFreq: number): void;
-  setWaveType(newWaveType: OscillatorType): void;
+  setWaveType(newWaveType: string): void;
   device: Device;
 }
 
@@ -22,6 +23,7 @@ function useOscillator(
   defaults: { frequency: number; waveType: OscillatorType }
 ): OscillatorController {
   const audioContext = useContext(AudioContextContext);
+  const getDeviceId = useId("device");
   const [[oscillator, device], _] = useState(() => {
     const osc = audioContext.createOscillator();
     const device = rack.createDevice(osc);

@@ -14,6 +14,7 @@ interface GainController {
   // connectInput(device: Device): void;
   updateGain(newGain: number): void;
   currentValue: number;
+  gainParam: AudioParam;
   device: Device;
 }
 
@@ -22,7 +23,7 @@ export function useGain(
   defaultValue = 0.5
 ): GainController {
   const audioContext = useContext(AudioContextContext);
-  const [[gain, device], setGain] = useState(() => {
+  const [[gain, device]] = useState(() => {
     const node = audioContext.createGain();
     const device = rack.createDevice(node);
     return [node, device] as DeviceState<GainNode>;
@@ -33,6 +34,7 @@ export function useGain(
   return {
     device,
     currentValue: gain.gain.value,
+    gainParam: gain.gain,
     updateGain(newGainValue: number) {
       setGainValue(newGainValue);
     }
@@ -44,7 +46,7 @@ function Amp() {
   const gain = useGain(rack);
   const inputPort = useInputPort(rack, gain.device, "input");
   const outputPort = useOutputPort(rack, gain.device, "output");
-  const gatePort = useInputPort(rack, gain.device, "gate");
+  const gatePort = useInputPort(rack, gain.device, "gate", gain.gainParam);
 
   return (
     <DeviceContainer name="Amp">

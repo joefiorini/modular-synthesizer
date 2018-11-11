@@ -54,9 +54,15 @@ export function useOutputPort(
 export function useInputPort(
   rack: RackStateContext,
   device: Device,
-  label: string
+  label: string,
+  modulationParam?: AudioParam
 ) {
-  const [port] = useState(() => ({ type: "input", device, label }));
+  const [port] = useState(() => ({
+    type: "input",
+    device,
+    label,
+    modulationParam
+  }));
   useEffect(() => {
     rack.allocatePort(port);
   }, []);
